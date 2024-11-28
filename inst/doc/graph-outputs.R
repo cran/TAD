@@ -1,0 +1,119 @@
+## ----include = FALSE----------------------------------------------------------
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 12,
+  fig.height = 8,
+  fig.asp = 0.8,
+  out.width = "80%",
+  dev.args = list(png = list(type = "cairo"))
+)
+
+## ----setup--------------------------------------------------------------------
+
+weights <- TAD::AB[, 5:102]
+weights_factor <- TAD::AB[, c("Year", "Plot", "Treatment", "Bloc")]
+trait_data <- log(TAD::trait[["SLA"]][seq_len(ncol(weights))])
+aggregation_factor_name <- c("Year", "Bloc")
+statistics_factor_name <- c("Treatment")
+regenerate_abundance_df <- TRUE
+regenerate_weighted_moments_df <- TRUE
+regenerate_stat_per_obs_df <- TRUE
+regenerate_stat_per_rand_df <- TRUE
+regenerate_stat_skr_df <- TRUE
+randomization_number <- 100
+seed <- 1312
+significativity_threshold <- c(0.025, 0.975)
+lin_mod <- "lm"
+slope_distance <- TAD:::CONSTANTS$SKEW_UNIFORM_SLOPE_DISTANCE
+intercept_distance <- TAD:::CONSTANTS$SKEW_UNIFORM_INTERCEPT_DISTANCE
+
+future::plan(future::multisession)
+results <- TAD::launch_analysis_tad(
+  weights = weights,
+  weights_factor = weights_factor,
+  trait_data = trait_data,
+  randomization_number = randomization_number,
+  aggregation_factor_name = aggregation_factor_name,
+  statistics_factor_name = statistics_factor_name,
+  seed = seed,
+  regenerate_abundance_df = TRUE,
+  regenerate_weighted_moments_df = TRUE,
+  regenerate_stat_per_obs_df = TRUE,
+  regenerate_stat_per_rand_df = TRUE,
+  regenerate_stat_skr_df = TRUE,
+  significativity_threshold = significativity_threshold,
+  lin_mod = lin_mod,
+  slope_distance = slope_distance,
+  intercept_distance = intercept_distance
+)
+future::plan(future::sequential)
+
+## -----------------------------------------------------------------------------
+
+str(results$weighted_moments)
+str(results$statistics_per_observation)
+moments_graph <- TAD::moments_graph(
+  moments_df = results$weighted_moments,
+  statistics_per_observation = results$statistics_per_observation,
+  statistics_factor_name = statistics_factor_name,
+  statistics_factor_name_breaks = c("Mown_Unfertilized", "Mown_NPK"),
+  statistics_factor_name_col = c("#1A85FF", "#D41159")
+)
+moments_graph
+
+## -----------------------------------------------------------------------------
+str(results$weighted_moments)
+skr_graph <- TAD::skr_graph(
+  moments_df = results$weighted_moments,
+  statistics_factor_name = statistics_factor_name,
+  statistics_factor_name_breaks = c("Mown_Unfertilized", "Mown_NPK"),
+  statistics_factor_name_col = c("#1A85FF", "#D41159"),
+  slope_distance = slope_distance,
+  intercept_distance = intercept_distance
+)
+skr_graph
+
+## -----------------------------------------------------------------------------
+str(results$ses_skr)
+skr_param_graph <- TAD::skr_param_graph(
+  skr_param = results$ses_skr,
+  statistics_factor_name = statistics_factor_name,
+  statistics_factor_name_breaks = c("Mown_Unfertilized", "Mown_NPK"),
+  statistics_factor_name_col = c("#1A85FF", "#D41159"),
+  slope_distance = slope_distance,
+  intercept_distance = intercept_distance
+)
+skr_param_graph
+
+## -----------------------------------------------------------------------------
+
+results <- TAD::launch_analysis_tad(
+  weights = weights,
+  weights_factor = weights_factor,
+  trait_data = trait_data,
+  randomization_number = randomization_number,
+  aggregation_factor_name = aggregation_factor_name,
+  statistics_factor_name = statistics_factor_name,
+  seed = seed,
+  regenerate_abundance_df = TRUE,
+  regenerate_weighted_moments_df = TRUE,
+  regenerate_stat_per_obs_df = TRUE,
+  regenerate_stat_per_rand_df = TRUE,
+  regenerate_stat_skr_df = TRUE,
+  significativity_threshold = significativity_threshold,
+  lin_mod = lin_mod,
+  slope_distance = slope_distance,
+  intercept_distance = (intercept_distance <- 1.90)
+)
+str(results$ses_skr)
+skr_param_graph <- TAD::skr_param_graph(
+  skr_param = results$ses_skr,
+  statistics_factor_name = statistics_factor_name,
+  statistics_factor_name_breaks = c("Mown_Unfertilized", "Mown_NPK"),
+  statistics_factor_name_col = c("#1A85FF", "#D41159"),
+  slope_distance = 1,
+  intercept_distance = intercept_distance
+)
+skr_param_graph
+
